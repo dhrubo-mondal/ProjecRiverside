@@ -290,9 +290,9 @@ button_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-button-sou
 game_over_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-over-sound.mp3"))
 
 if music_playing == 1:
-    music_y = 10
+    music_y = 36
     no_music_y = -100
-    music_2_y = height // 2 + 80
+    music_2_y = (height // 2) + 80
     no_music_2_y = -100
     heal_sound.set_volume(1)
     jump_sound.set_volume(1)
@@ -301,9 +301,9 @@ if music_playing == 1:
     game_over_sound.set_volume(0.25)
 else:
     music_y = -100
-    no_music_y = 10
+    no_music_y = 36
     music_2_y = -100
-    no_music_2_y = height // 2 + 80
+    no_music_2_y = (height // 2) + 80
     heal_sound.set_volume(0)
     jump_sound.set_volume(0)
     hit_sound.set_volume(0)
@@ -332,19 +332,19 @@ plate_2_rect = plate_2_surf.get_rect(center=(width // 2, height // 2 - 55))
 
 music_surf = pygame.transform.scale(
     pygame.image.load(path.join("assets", "images", "ui", "music.png")), (60, 60))
-music_rect = music_surf.get_rect(center=(width - 40, music_y))
+music_rect = music_surf.get_rect(center=(width - 70, music_y))
 
 no_music_surf = pygame.transform.scale(
     pygame.image.load(path.join("assets", "images", "ui", "no_music.png")), (60, 60))
-no_music_rect = no_music_surf.get_rect(center=(width - 40, no_music_y))
+no_music_rect = no_music_surf.get_rect(center=(width - 70, no_music_y))
 
 retry_surf = pygame.transform.scale(
     pygame.image.load(path.join("assets", "images", "ui", "retry.png")), (90, 90))
-retry_rect = retry_surf.get_rect(center=(width // 2, height // 2 + 80))
+retry_rect = retry_surf.get_rect(center=(width // 2, (height // 2) + 80))
 
 info_surf = pygame.transform.scale(
     pygame.image.load(path.join("assets", "images", "ui", "info.png")), (90, 90))
-info_rect = info_surf.get_rect(center=(width // 2 - 110, height // 2 + 80))
+info_rect = info_surf.get_rect(center=(width // 2 - 110, (height // 2) + 80))
 
 music_surf_2 = pygame.transform.scale(
     pygame.image.load(path.join("assets", "images", "ui", "music.png")), (90, 90))
@@ -353,7 +353,6 @@ music_rect_2 = music_surf_2.get_rect(center=(width // 2 + 110, music_2_y))
 no_music_surf_2 = pygame.transform.scale(
     pygame.image.load(path.join("assets", "images", "ui", "no_music.png")), (90, 90))
 no_music_rect_2 = no_music_surf_2.get_rect(center=(width // 2 + 110, no_music_2_y))
-
 
 # The Sprite groups 
 background = pygame.sprite.Group()
@@ -397,8 +396,10 @@ while running:
                 if music_rect.collidepoint(pygame.mouse.get_pos()):
                     button_sound.play()
                     music_playing = 0
-                    no_music_y = 10
+                    no_music_y = 36
                     music_y = -100
+                    music_2_y = -100
+                    no_music_2_y = (height // 2) + 80
                     heal_sound.set_volume(0)
                     jump_sound.set_volume(0)
                     hit_sound.set_volume(0)
@@ -407,8 +408,10 @@ while running:
 
                 if no_music_rect.collidepoint(pygame.mouse.get_pos()):
                     music_playing = 1
-                    music_y = 10
+                    music_y = 36
                     no_music_y = -100
+                    music_2_y = (height // 2) + 80
+                    no_music_2_y = -100
                     heal_sound.set_volume(1)
                     jump_sound.set_volume(1)
                     hit_sound.set_volume(1)
@@ -441,9 +444,11 @@ while running:
 
                 if music_rect_2.collidepoint(pygame.mouse.get_pos()):
                     button_sound.play()
-                    music_playing = 0
-                    no_music_y = height // 2 + 80
+                    no_music_y = 36
                     music_y = -100
+                    music_playing = 0
+                    music_2_y = -100
+                    no_music_2_y = (height // 2) + 80
                     heal_sound.set_volume(0)
                     jump_sound.set_volume(0)
                     hit_sound.set_volume(0)
@@ -452,8 +457,10 @@ while running:
 
                 if no_music_rect_2.collidepoint(pygame.mouse.get_pos()):
                     music_playing = 1
-                    music_y = height // 2 + 80
                     no_music_y = -100
+                    music_y = 36
+                    music_2_y = (height // 2) + 80
+                    no_music_2_y = -100
                     heal_sound.set_volume(1)
                     jump_sound.set_volume(1)
                     hit_sound.set_volume(1)
@@ -490,9 +497,9 @@ while running:
         display_heart(screen, heart)
 
         # Drawing the music button
-        music_rect.y = music_y
+        music_rect.center = (width - 40, music_y )
         screen.blit(music_surf, music_rect)
-        no_music_rect.y = no_music_y
+        no_music_rect.center = (width - 40, no_music_y)
         screen.blit(no_music_surf, no_music_rect)
 
     if game_state == 0:
@@ -502,9 +509,9 @@ while running:
         screen.blit(retry_surf, retry_rect)
 
         # Drawing the music button
-        music_rect_2.y = music_2_y
+        music_rect_2.center = (width // 2 + 110, music_2_y)
         screen.blit(music_surf_2, music_rect_2)
-        no_music_rect_2.y = no_music_2_y
+        no_music_rect_2.center = (width // 2 + 110, no_music_2_y)
         screen.blit(no_music_surf_2, no_music_rect_2)
 
         if not menu_pressed:
