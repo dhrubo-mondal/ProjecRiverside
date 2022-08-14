@@ -1,5 +1,5 @@
 import pygame
-from os import path, walk
+from os import path, walk, mkdir, getenv
 from random import randint
 
 
@@ -81,7 +81,6 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, value, sc):
         super().__init__()
 
-        self.plane = 550
         if value == 'golem_1':
             self.frames = []
             for _, _, image in walk(path.join("assets", "images", "enemy", "golem_1")):
@@ -90,11 +89,7 @@ class Enemy(pygame.sprite.Sprite):
                         pygame.image.load(path.join("assets", "images", "enemy", "golem_1", i)).convert_alpha(),
                         (75, 85))
                     self.frames.append(image_surf)
-            self.plane = 535
-            if sc > 50:
-                self.speed = 7
-            else:
-                self.speed = 5
+            self.speed = 5 + sc // 20
         elif value == 'golem_2':
             self.frames = []
             for _, _, image in walk(path.join("assets", "images", "enemy", "golem_2")):
@@ -103,11 +98,7 @@ class Enemy(pygame.sprite.Sprite):
                         pygame.image.load(path.join("assets", "images", "enemy", "golem_2", i)).convert_alpha(),
                         (75, 85))
                     self.frames.append(image_surf)
-            self.plane = 535
-            if sc > 50:
-                self.speed = 7
-            else:
-                self.speed = 5
+            self.speed = 5 + sc // 20
         elif value == 'golem_3':
             self.frames = []
             for _, _, image in walk(path.join("assets", "images", "enemy", "golem_3")):
@@ -116,11 +107,7 @@ class Enemy(pygame.sprite.Sprite):
                         pygame.image.load(path.join("assets", "images", "enemy", "golem_3", i)).convert_alpha(),
                         (75, 85))
                     self.frames.append(image_surf)
-            self.plane = 535
-            if sc > 50:
-                self.speed = 7
-            else:
-                self.speed = 5
+            self.speed = 5 + sc // 20
 
         elif value == 'big_golem_1':
             self.frames = []
@@ -130,11 +117,7 @@ class Enemy(pygame.sprite.Sprite):
                         pygame.image.load(path.join("assets", "images", "enemy", "golem_1", i)).convert_alpha(),
                         (95, 105))
                     self.frames.append(image_surf)
-            self.plane = 536
-            if sc > 50:
-                self.speed = 9
-            else:
-                self.speed = 6
+            self.speed = 6 + sc // 20
         elif value == 'big_golem_2':
             self.frames = []
             for _, _, image in walk(path.join("assets", "images", "enemy", "golem_2")):
@@ -143,11 +126,7 @@ class Enemy(pygame.sprite.Sprite):
                         pygame.image.load(path.join("assets", "images", "enemy", "golem_2", i)).convert_alpha(),
                         (95, 105))
                     self.frames.append(image_surf)
-            self.plane = 536
-            if sc > 50:
-                self.speed = 9
-            else:
-                self.speed = 6
+            self.speed = 6 + sc // 20
         else:
             self.frames = []
             for _, _, image in walk(path.join("assets", "images", "enemy", "golem_3")):
@@ -156,14 +135,11 @@ class Enemy(pygame.sprite.Sprite):
                         pygame.image.load(path.join("assets", "images", "enemy", "golem_3", i)).convert_alpha(),
                         (95, 105))
                     self.frames.append(image_surf)
-            self.plane = 536
-            if sc > 50:
-                self.speed = 9
-            else:
-                self.speed = 6
+            self.speed = 6 + sc // 20
 
-        self.animation_index = 0
+        self.plane = 535
         self.score = 0
+        self.animation_index = 0
         self.image = self.frames[self.animation_index]
         self.rect = self.image.get_rect(midbottom=(randint(1100, 1500), self.plane))
         self.mask = pygame.mask.from_surface(self.image)
@@ -251,22 +227,38 @@ def display_heart(display, heart_val):
     display.blit(health_bar, health_bar_rect)
 
 
-def read_values():
-    try:
-        prop = open(path.join("assets", "properties", "data.txt"), "rt")
-        text_value = prop.readlines()
-    except FileNotFoundError:
-        update_values(0, 0)
-        text_value = [0, 0]
-    return text_value
+def read_property():
+    global file_exists
+    global file_location
+
+    if file_exists:
+        file = open(file_location, "rt")
+        read = file.readlines()
+        file.close()
+        return read
+    else:
+        write_property(0, 0)
+        return [0, 0]
 
 
-def update_values(val_score=0, val_time=0):
+def write_property(val_score=0, val_time=0):
+    global file_exists
+    global file_location
     lines = [val_score, val_time]
-    prop = open(path.join("assets", "properties", "data.txt"), "wt")
-    for line in lines:
-        prop.writelines(str(line) + "\n")
-    prop.close()
+
+    if file_exists:
+        file = open(file_location, "wt")
+        for line in lines:
+            file.writelines(str(line) + "\n")
+        file.close()
+    else:
+        if not path.exists(path.join(getenv("APPDATA"), "Riverside", "data")):
+            mkdir(path.join(getenv("APPDATA"), "Riverside"))
+            mkdir((file_location[0:len(file_location) - 9]).rstrip("\\").rstrip("/"))
+            file_exists = True
+        else:
+            file_exists = True
+        write_property(0, 0)
 
 
 def get_font(size):
@@ -287,17 +279,15 @@ width, height = 1000, 9 * 1000 // 16
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Riverside")
 
-
-# font2 = pygame.font.Font(path.join("assets", "fonts", "evil_empire.ttf"), 72)
-# font3 = pygame.font.Font(path.join("assets", "fonts", "evil_empire.ttf"), 30)
-
 running = True
 menu_pressed = False
+file_location = path.join(getenv("APPDATA"), "Riverside", "data", "value.txt")
+file_exists = path.exists(file_location)
 game_state = 1
 score = 0
 heart = 5
 
-data_val = read_values()
+data_val = read_property()
 high_score = int(data_val[0])
 time_played = int(data_val[1])
 
@@ -432,6 +422,6 @@ while running:
     pygame.display.update()
     clock.tick(60)
 
-# Update after game window is closed 
+# Update after game window is closed
 time_played += pygame.time.get_ticks()
-update_values(high_score, time_played)
+write_property(high_score, time_played)
