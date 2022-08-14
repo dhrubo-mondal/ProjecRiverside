@@ -48,8 +48,6 @@ class Player(pygame.sprite.Sprite):
         self.gravity = 0
         self.mask = pygame.mask.from_surface(self.image)
 
-        self.jump_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-jump-sound.mp3"))
-
     def apply_gravity(self):
         self.gravity += 1
         self.rect.y += self.gravity
@@ -60,7 +58,6 @@ class Player(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE] and self.rect.bottom >= self.plane:
             self.gravity = -23
-            self.jump_sound.play()
 
     def animate(self):
         if self.rect.bottom < self.plane:
@@ -237,14 +234,14 @@ def read_property():
         file.close()
         return read
     else:
-        write_property(0, 0)
-        return [0, 0]
+        write_property()
+        return [0, 0, 1]
 
 
-def write_property(val_score=0, val_time=0):
+def write_property(val_score=0, val_time=0, music=1):
     global file_exists
     global file_location
-    lines = [val_score, val_time]
+    lines = [val_score, val_time, music]
 
     if file_exists:
         file = open(file_location, "wt")
@@ -258,7 +255,7 @@ def write_property(val_score=0, val_time=0):
             file_exists = True
         else:
             file_exists = True
-        write_property(0, 0)
+        write_property()
 
 
 def get_font(size):
@@ -266,13 +263,6 @@ def get_font(size):
 
 
 pygame.init()
-
-heal_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-heal-sound.wav"))
-jump_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-jump-sound.mp3"))
-hit_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-hit-sound.mp3"))
-button_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-button-sound.wav"))
-game_over_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-over-sound.mp3"))
-game_over_sound.set_volume(0.25)
 
 width, height = 1000, 9 * 1000 // 16
 
@@ -283,13 +273,43 @@ running = True
 menu_pressed = False
 file_location = path.join(getenv("APPDATA"), "Riverside", "data", "value.txt")
 file_exists = path.exists(file_location)
-game_state = 0
+game_state = 1
 score = 0
 heart = 5
 
 data_val = read_property()
 high_score = int(data_val[0])
 time_played = int(data_val[1])
+music_playing = int(data_val[2])
+
+# The sounds
+heal_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-heal-sound.wav"))
+jump_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-jump-sound.mp3"))
+hit_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-hit-sound.mp3"))
+button_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-button-sound.wav"))
+game_over_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-over-sound.mp3"))
+
+if music_playing == 1:
+    music_y = 10
+    no_music_y = -100
+    music_2_y = height // 2 + 80
+    no_music_2_y = -100
+    heal_sound.set_volume(1)
+    jump_sound.set_volume(1)
+    hit_sound.set_volume(1)
+    button_sound.set_volume(1)
+    game_over_sound.set_volume(0.25)
+else:
+    music_y = -100
+    no_music_y = 10
+    music_2_y = -100
+    no_music_2_y = height // 2 + 80
+    heal_sound.set_volume(0)
+    jump_sound.set_volume(0)
+    hit_sound.set_volume(0)
+    button_sound.set_volume(0)
+    game_over_sound.set_volume(0)
+
 
 clock = pygame.time.Clock()
 
@@ -302,14 +322,6 @@ board_surf = pygame.transform.scale(
     pygame.image.load(path.join("assets", "images", "ui", "board.png")), (400, 350))
 board_rect = board_surf.get_rect(center=(width // 2, height // 2))
 
-retry_surf = pygame.transform.scale(
-    pygame.image.load(path.join("assets", "images", "ui", "retry.png")), (90, 90))
-retry_rect = retry_surf.get_rect(center=(width // 2 - 80, height // 2 + 80))
-
-info_surf = pygame.transform.scale(
-    pygame.image.load(path.join("assets", "images", "ui", "info.png")), (90, 90))
-info_rect = info_surf.get_rect(center=(width // 2 + 80, height // 2 + 80))
-
 plate_surf = pygame.transform.scale(
     pygame.image.load(path.join("assets", "images", "ui", "plate.png")), (340, 120))
 plate_rect = plate_surf.get_rect(center=(width // 2, height // 2 - 60))
@@ -317,6 +329,31 @@ plate_rect = plate_surf.get_rect(center=(width // 2, height // 2 - 60))
 plate_2_surf = pygame.transform.scale(
     pygame.image.load(path.join("assets", "images", "ui", "plate.png")), (340, 150))
 plate_2_rect = plate_2_surf.get_rect(center=(width // 2, height // 2 - 55))
+
+music_surf = pygame.transform.scale(
+    pygame.image.load(path.join("assets", "images", "ui", "music.png")), (60, 60))
+music_rect = music_surf.get_rect(center=(width - 40, music_y))
+
+no_music_surf = pygame.transform.scale(
+    pygame.image.load(path.join("assets", "images", "ui", "no_music.png")), (60, 60))
+no_music_rect = no_music_surf.get_rect(center=(width - 40, no_music_y))
+
+retry_surf = pygame.transform.scale(
+    pygame.image.load(path.join("assets", "images", "ui", "retry.png")), (90, 90))
+retry_rect = retry_surf.get_rect(center=(width // 2, height // 2 + 80))
+
+info_surf = pygame.transform.scale(
+    pygame.image.load(path.join("assets", "images", "ui", "info.png")), (90, 90))
+info_rect = info_surf.get_rect(center=(width // 2 - 110, height // 2 + 80))
+
+music_surf_2 = pygame.transform.scale(
+    pygame.image.load(path.join("assets", "images", "ui", "music.png")), (90, 90))
+music_rect_2 = music_surf_2.get_rect(center=(width // 2 + 110, music_2_y))
+
+no_music_surf_2 = pygame.transform.scale(
+    pygame.image.load(path.join("assets", "images", "ui", "no_music.png")), (90, 90))
+no_music_rect_2 = no_music_surf_2.get_rect(center=(width // 2 + 110, no_music_2_y))
+
 
 # The Sprite groups 
 background = pygame.sprite.Group()
@@ -337,12 +374,14 @@ pygame.time.set_timer(score_update, 4000)
 heal = pygame.USEREVENT + 3
 pygame.time.set_timer(heal, 20000)
 
-
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
         if game_state == 1:
+            if event.type == pygame.KEYDOWN and player.sprite.rect.bottom >= int(player.sprite.__getattribute__("plane")):
+                jump_sound.play()
             if event.type == heal:
                 if heart < 5:
                     list_heart = [1, 0, 2]
@@ -353,12 +392,37 @@ while running:
                     else:
                         heart += list_heart[h_index]
                         heal_sound.play()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if music_rect.collidepoint(pygame.mouse.get_pos()):
+                    button_sound.play()
+                    music_playing = 0
+                    no_music_y = 10
+                    music_y = -100
+                    heal_sound.set_volume(0)
+                    jump_sound.set_volume(0)
+                    hit_sound.set_volume(0)
+                    button_sound.set_volume(0)
+                    game_over_sound.set_volume(0)
+
+                if no_music_rect.collidepoint(pygame.mouse.get_pos()):
+                    music_playing = 1
+                    music_y = 10
+                    no_music_y = -100
+                    heal_sound.set_volume(1)
+                    jump_sound.set_volume(1)
+                    hit_sound.set_volume(1)
+                    button_sound.set_volume(1)
+                    game_over_sound.set_volume(0.25)
+
             if event.type == score_update:
                 score += 1
+
             if event.type == spawn_enemy:
                 enemy_list = ["golem_1", "golem_2", "golem_3", "big_golem_1", "big_golem_2", "big_golem_3"]
                 enemy_name = enemy_list[probability([500, 400, 100, 50, 40, 10])]
                 enemy.add(Enemy(enemy_name, score))
+
         if game_state == 0:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if info_rect.collidepoint(pygame.mouse.get_pos()):
@@ -367,12 +431,34 @@ while running:
                         menu_pressed = False
                     else:
                         menu_pressed = True
+
                 if retry_rect.collidepoint(pygame.mouse.get_pos()):
                     button_sound.play()
                     score = 0
                     game_state = 1
                     heart = 5
                     enemy.empty()
+
+                if music_rect_2.collidepoint(pygame.mouse.get_pos()):
+                    button_sound.play()
+                    music_playing = 0
+                    no_music_y = height // 2 + 80
+                    music_y = -100
+                    heal_sound.set_volume(0)
+                    jump_sound.set_volume(0)
+                    hit_sound.set_volume(0)
+                    button_sound.set_volume(0)
+                    game_over_sound.set_volume(0)
+
+                if no_music_rect_2.collidepoint(pygame.mouse.get_pos()):
+                    music_playing = 1
+                    music_y = height // 2 + 80
+                    no_music_y = -100
+                    heal_sound.set_volume(1)
+                    jump_sound.set_volume(1)
+                    hit_sound.set_volume(1)
+                    button_sound.set_volume(1)
+                    game_over_sound.set_volume(0.25)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
@@ -403,11 +489,23 @@ while running:
         # Drawing the health bar
         display_heart(screen, heart)
 
+        # Drawing the music button
+        music_rect.y = music_y
+        screen.blit(music_surf, music_rect)
+        no_music_rect.y = no_music_y
+        screen.blit(no_music_surf, no_music_rect)
+
     if game_state == 0:
         screen.blit(black_screen, black_screen_rect)
         screen.blit(board_surf, board_rect)
         screen.blit(info_surf, info_rect)
         screen.blit(retry_surf, retry_rect)
+
+        # Drawing the music button
+        music_rect_2.y = music_2_y
+        screen.blit(music_surf_2, music_rect_2)
+        no_music_rect_2.y = no_music_2_y
+        screen.blit(no_music_surf_2, no_music_rect_2)
 
         if not menu_pressed:
             screen.blit(plate_surf, plate_rect)
@@ -424,4 +522,4 @@ while running:
 
 # Update after game window is closed
 time_played += pygame.time.get_ticks()
-write_property(high_score, time_played)
+write_property(high_score, time_played, music_playing)
