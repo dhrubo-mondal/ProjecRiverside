@@ -192,11 +192,11 @@ def check_collision():
 
 
 def display_score(x, y, draw_board, instance_font):
-    text = instance_font.render("Score: " + str(score), True, (241, 211, 202))  # (109, 9, 0)
+    text = instance_font.render("Score: " + str(score), True, (241, 211, 202))
     text_rect = text.get_rect(center=(x, y))
     board_surface = pygame.transform.scale(
-        pygame.image.load(path.join("assets", "images", "ui", "board.png")).convert_alpha(), (248, 80))
-    board_rect_element = board_surface.get_rect(center=(width // 2, 40))
+        pygame.image.load(path.join("assets", "images", "ui", "board.png")).convert_alpha(), (250, 180))
+    board_rect_element = board_surface.get_rect(center=(width // 2, -10))
     if draw_board:
         screen.blit(board_surface, board_rect_element)
     screen.blit(text, text_rect)
@@ -283,7 +283,7 @@ running = True
 menu_pressed = False
 file_location = path.join(getenv("APPDATA"), "Riverside", "data", "value.txt")
 file_exists = path.exists(file_location)
-game_state = 1
+game_state = 0
 score = 0
 heart = 5
 
@@ -303,19 +303,19 @@ board_surf = pygame.transform.scale(
 board_rect = board_surf.get_rect(center=(width // 2, height // 2))
 
 retry_surf = pygame.transform.scale(
-    pygame.image.load(path.join("assets", "images", "ui", "retry.png")), (90, 95))
+    pygame.image.load(path.join("assets", "images", "ui", "retry.png")), (90, 90))
 retry_rect = retry_surf.get_rect(center=(width // 2 - 80, height // 2 + 80))
 
-menu_surf = pygame.transform.scale(
-    pygame.image.load(path.join("assets", "images", "ui", "menu.png")), (90, 95))
-menu_rect = menu_surf.get_rect(center=(width // 2 + 80, height // 2 + 80))
+info_surf = pygame.transform.scale(
+    pygame.image.load(path.join("assets", "images", "ui", "info.png")), (90, 90))
+info_rect = info_surf.get_rect(center=(width // 2 + 80, height // 2 + 80))
 
 plate_surf = pygame.transform.scale(
-    pygame.image.load(path.join("assets", "images", "ui", "plate.png")), (340, 150))
+    pygame.image.load(path.join("assets", "images", "ui", "plate.png")), (340, 120))
 plate_rect = plate_surf.get_rect(center=(width // 2, height // 2 - 60))
 
 plate_2_surf = pygame.transform.scale(
-    pygame.image.load(path.join("assets", "images", "ui", "plate.png")), (340, 190))
+    pygame.image.load(path.join("assets", "images", "ui", "plate.png")), (340, 150))
 plate_2_rect = plate_2_surf.get_rect(center=(width // 2, height // 2 - 55))
 
 # The Sprite groups 
@@ -361,7 +361,7 @@ while running:
                 enemy.add(Enemy(enemy_name, score))
         if game_state == 0:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if menu_rect.collidepoint(pygame.mouse.get_pos()):
+                if info_rect.collidepoint(pygame.mouse.get_pos()):
                     button_sound.play()
                     if menu_pressed:
                         menu_pressed = False
@@ -395,7 +395,7 @@ while running:
         enemy.update()
 
         # Drawing the score
-        display_score(width // 2, 40, True, get_font(50))
+        display_score(width // 2, 34, True, get_font(50))
 
         # Checking collision
         game_state = check_collision()
@@ -406,12 +406,12 @@ while running:
     if game_state == 0:
         screen.blit(black_screen, black_screen_rect)
         screen.blit(board_surf, board_rect)
-        screen.blit(menu_surf, menu_rect)
+        screen.blit(info_surf, info_rect)
         screen.blit(retry_surf, retry_rect)
 
         if not menu_pressed:
             screen.blit(plate_surf, plate_rect)
-            display_score(width // 2 + 5, 220, False, get_font(72))
+            display_score(width // 2, 220, False, get_font(50))
         else:
             screen.blit(plate_2_surf, plate_2_rect)
             display_stats(high_score, time_played, get_font(30))
