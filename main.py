@@ -283,10 +283,10 @@ time_played = int(data_val[1])
 music_playing = int(data_val[2])
 
 # The sounds
-heal_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-heal-sound.wav"))
+heal_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-heal-sound.mp3"))
 jump_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-jump-sound.mp3"))
 hit_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-hit-sound.mp3"))
-button_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-button-sound.wav"))
+button_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-button-sound.mp3"))
 game_over_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-over-sound.mp3"))
 
 if music_playing == 1:
@@ -309,7 +309,6 @@ else:
     hit_sound.set_volume(0)
     button_sound.set_volume(0)
     game_over_sound.set_volume(0)
-
 
 clock = pygame.time.Clock()
 
@@ -379,7 +378,8 @@ while running:
             running = False
 
         if game_state == 1:
-            if event.type == pygame.KEYDOWN and player.sprite.rect.bottom >= int(player.sprite.__getattribute__("plane")):
+            if event.type == pygame.KEYDOWN and player.sprite.rect.bottom >= int(
+                    player.sprite.__getattribute__("plane")):
                 jump_sound.play()
             if event.type == heal:
                 if heart < 5:
@@ -474,7 +474,7 @@ while running:
                     heart = 5
                     enemy.empty()
 
-    # Drawing the background   
+    # Drawing the background
     background.draw(screen)
     background.update()
 
@@ -497,7 +497,7 @@ while running:
         display_heart(screen, heart)
 
         # Drawing the music button
-        music_rect.center = (width - 40, music_y )
+        music_rect.center = (width - 40, music_y)
         screen.blit(music_surf, music_rect)
         no_music_rect.center = (width - 40, no_music_y)
         screen.blit(no_music_surf, no_music_rect)
