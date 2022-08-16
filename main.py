@@ -1,7 +1,7 @@
 import pygame
 from os import path, walk, mkdir, getenv
 from random import randint
-
+from datetime import timedelta
 
 class Background(pygame.sprite.Sprite):
     def __init__(self, w, h):
@@ -212,20 +212,17 @@ def display_score(x, y, draw_board, instance_font):
 
 
 # Method to display status like highscore and time played
-def display_stats(hs, tp, font_instance):
+def display_stats(hs, font_instance):
     text_1 = font_instance.render("Highscore: " + str(hs), True, (241, 211, 202))
     text_1_rect = text_1.get_rect(center=(width // 2, height // 2 - 80))
     screen.blit(text_1, text_1_rect)
 
-    sec = tp // 1000
-    temp_min = sec // 60
+    sec = time_played // 1000
+    time = str(timedelta(seconds=sec))
+    time_list = time.split(":")
+    text = time_list[0] + "h " + time_list[1] + "m " + time_list[2] + "s"
 
-    hr = temp_min // 60
-    temp_min = temp_min - (hr * 60)
-    sec = sec - (temp_min * 60)
-
-    text_1 = font_instance.render("Time Played: " + str(hr) + "h " + str(temp_min) + "m " + str(sec) + "s",
-                                  True, (241, 211, 202))
+    text_1 = font_instance.render("Time Played: " + text, True, (241, 211, 202))
     text_1_rect = text_1.get_rect(center=(width // 2, height // 2 - 40))
     screen.blit(text_1, text_1_rect)
 
@@ -545,7 +542,7 @@ while running:
             display_score(width // 2, 220, False, get_font(50))
         else:
             screen.blit(plate_2_surf, plate_2_rect)
-            display_stats(high_score, time_played, get_font(30))
+            display_stats(high_score, get_font(30))
 
     # Updating high_score if necessary
     if score > high_score:
