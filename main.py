@@ -1,7 +1,7 @@
 import pygame
 from os import path, walk, mkdir, getenv
 from random import randint
-
+from datetime import timedelta
 
 class Background(pygame.sprite.Sprite):
     def __init__(self, w, h):
@@ -28,7 +28,7 @@ class Background(pygame.sprite.Sprite):
     # The sprite group update method
     def update(self):
         self.animate()
-
+    
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, w, h):
@@ -167,7 +167,7 @@ class Enemy(pygame.sprite.Sprite):
             self.kill()
 
 
-# Making a probability system for which obstacle to spawn
+# Making a probability system 
 def probability(weights):
     total_weight = sum(weights)
     rand = randint(1, total_weight)
@@ -212,20 +212,17 @@ def display_score(x, y, draw_board, instance_font):
 
 
 # Method to display status like highscore and time played
-def display_stats(hs, tp, font_instance):
+def display_stats(hs, font_instance):
     text_1 = font_instance.render("Highscore: " + str(hs), True, (241, 211, 202))
     text_1_rect = text_1.get_rect(center=(width // 2, height // 2 - 80))
     screen.blit(text_1, text_1_rect)
 
-    sec = tp // 1000
-    temp_min = sec // 60
+    sec = time_played // 1000
+    time = str(timedelta(seconds=sec))
+    time_list = time.split(":")
+    text = time_list[0] + "h " + time_list[1] + "m " + time_list[2] + "s"
 
-    hr = temp_min // 60
-    temp_min = temp_min - (hr * 60)
-    sec = sec - (temp_min * 60)
-
-    text_1 = font_instance.render("Time Played: " + str(hr) + "h " + str(temp_min) + "m " + str(sec) + "s",
-                                  True, (241, 211, 202))
+    text_1 = font_instance.render("Time Played: " + text, True, (241, 211, 202))
     text_1_rect = text_1.get_rect(center=(width // 2, height // 2 - 40))
     screen.blit(text_1, text_1_rect)
 
@@ -288,6 +285,7 @@ width, height = 1000, 9 * 1000 // 16
 
 running = True
 menu_pressed = False
+paused = False
 file_location = path.join(getenv("APPDATA"), "Riverside", "data", "value.txt")
 file_exists = path.exists(file_location)
 game_state = 1
@@ -337,8 +335,14 @@ clock = pygame.time.Clock()
 
 # Assigning the elements that are to be drawn on screen
 black_screen = pygame.Surface((width, height))
-black_screen.set_alpha(200)
+black_screen.set_alpha(220)
 black_screen_rect = black_screen.get_rect(topleft=(0, 0))
+
+paused_text = get_font(128).render("PAUSED", True, (230, 230, 230))
+paused_text_rect = paused_text.get_rect(center=(width // 2, height // 2 - 40))
+
+paused_text_2 = get_font(48).render("Press P to Resume", True, (230, 230, 230))
+paused_text_2_rect = paused_text.get_rect(center=(width // 2, height // 2 + 80))
 
 board_surf = pygame.transform.scale(
     pygame.image.load(path.join("assets", "images", "ui", "board.png")), (400, 350))
@@ -401,55 +405,60 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
         if game_state == 1:
-            if event.type == pygame.KEYDOWN and player.sprite.rect.bottom >= int(
-                    player.sprite.__getattribute__("plane")):
-                jump_sound.play()
-            if event.type == heal:
-                if heart < 5:
-                    list_heart = [1, 0, 2]
-                    h_index = probability([950, 40, 10])
-                    if h_index == 2 and heart == 4:
-                        heart += 1
-                        heal_sound.play()
-                    else:
-                        heart += list_heart[h_index]
-                        heal_sound.play()
+            if paused:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+                    paused = False
+            else:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+                    paused = True
+                if event.type == pygame.KEYDOWN and player.sprite.rect.bottom >= int(
+                        player.sprite.__getattribute__("plane")):
+                    jump_sound.play()
+                if event.type == heal:
+                    if heart < 5:
+                        list_heart = [1, 0, 2]
+                        h_index = probability([950, 40, 10])
+                        if h_index == 2 and heart == 4:
+                            heart += 1
+                            heal_sound.play()
+                        else:
+                            heart += list_heart[h_index]
+                            heal_sound.play()
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if music_rect.collidepoint(pygame.mouse.get_pos()):
-                    button_sound.play()
-                    music_playing = 0
-                    no_music_y = 36
-                    music_y = -100
-                    music_2_y = -100
-                    no_music_2_y = (height // 2) + 80
-                    heal_sound.set_volume(0)
-                    jump_sound.set_volume(0)
-                    hit_sound.set_volume(0)
-                    button_sound.set_volume(0)
-                    game_over_sound.set_volume(0)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if music_rect.collidepoint(pygame.mouse.get_pos()):
+                        button_sound.play()
+                        music_playing = 0
+                        no_music_y = 36
+                        music_y = -100
+                        music_2_y = -100
+                        no_music_2_y = (height // 2) + 80
+                        heal_sound.set_volume(0)
+                        jump_sound.set_volume(0)
+                        hit_sound.set_volume(0)
+                        button_sound.set_volume(0)
+                        game_over_sound.set_volume(0)
 
-                if no_music_rect.collidepoint(pygame.mouse.get_pos()):
-                    music_playing = 1
-                    music_y = 36
-                    no_music_y = -100
-                    music_2_y = (height // 2) + 80
-                    no_music_2_y = -100
-                    heal_sound.set_volume(1)
-                    jump_sound.set_volume(1)
-                    hit_sound.set_volume(1)
-                    button_sound.set_volume(1)
-                    game_over_sound.set_volume(0.25)
+                    if no_music_rect.collidepoint(pygame.mouse.get_pos()):
+                        music_playing = 1
+                        music_y = 36
+                        no_music_y = -100
+                        music_2_y = (height // 2) + 80
+                        no_music_2_y = -100
+                        heal_sound.set_volume(1)
+                        jump_sound.set_volume(1)
+                        hit_sound.set_volume(1)
+                        button_sound.set_volume(1)
+                        game_over_sound.set_volume(0.25)
 
-            if event.type == score_update:
-                score += 1
+                if event.type == score_update:
+                    score += 1
 
-            if event.type == spawn_enemy:
-                enemy_list = ["golem_1", "golem_2", "golem_3", "big_golem_1", "big_golem_2", "big_golem_3"]
-                enemy_name = enemy_list[probability([500, 400, 100, 50, 40, 10])]
-                enemy.add(Enemy(enemy_name, score))
+                if event.type == spawn_enemy:
+                    enemy_list = ["golem_1", "golem_2", "golem_3", "big_golem_1", "big_golem_2", "big_golem_3"]
+                    enemy_name = enemy_list[probability([500, 400, 100, 50, 40, 10])]
+                    enemy.add(Enemy(enemy_name, score))
 
         if game_state == 0:
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -507,26 +516,37 @@ while running:
     if game_state == 1:
         # Drawing the player
         player.draw(screen)
-        player.update()
+        if not paused:
+            player.update()
 
         # Drawing the enemy
         enemy.draw(screen)
-        enemy.update()
+        if not paused:
+            enemy.update()
 
         # Drawing the score
-        display_score(width // 2, 34, True, get_font(50))
+        if not paused:
+            display_score(width // 2, 34, True, get_font(50))
 
         # Checking collision
         game_state = check_collision()
 
         # Drawing the health bar
-        display_heart(screen, heart)
+        if not paused:
+            display_heart(screen, heart)
+
+        # Drawing the paused screen
+        if paused:
+            screen.blit(black_screen, black_screen_rect)
+            screen.blit(paused_text, paused_text_rect)
+            screen.blit(paused_text_2, paused_text_2_rect)
 
         # Drawing the music button
-        music_rect.center = (width - 40, music_y)
-        screen.blit(music_surf, music_rect)
-        no_music_rect.center = (width - 40, no_music_y)
-        screen.blit(no_music_surf, no_music_rect)
+        if not paused:
+            music_rect.center = (width - 40, music_y)
+            screen.blit(music_surf, music_rect)
+            no_music_rect.center = (width - 40, no_music_y)
+            screen.blit(no_music_surf, no_music_rect)
 
     if game_state == 0:
         screen.blit(black_screen, black_screen_rect)
@@ -545,7 +565,7 @@ while running:
             display_score(width // 2, 220, False, get_font(50))
         else:
             screen.blit(plate_2_surf, plate_2_rect)
-            display_stats(high_score, time_played, get_font(30))
+            display_stats(high_score, get_font(30))
 
     # Updating high_score if necessary
     if score > high_score:
