@@ -18,12 +18,14 @@ class Background(pygame.sprite.Sprite):
         self.image = self.images[self.image_index]
         self.rect = self.image.get_rect()
 
+    # The method to traverse through the images to make it look like animation
     def animate(self):
         self.image_index += 0.14
         if self.image_index >= len(self.images):
             self.image_index = 0
         self.image = self.images[int(self.image_index)]
 
+    # The sprite group update method
     def update(self):
         self.animate()
 
@@ -48,17 +50,20 @@ class Player(pygame.sprite.Sprite):
         self.gravity = 0
         self.mask = pygame.mask.from_surface(self.image)
 
+    # Method to apply gravity to player instance
     def apply_gravity(self):
         self.gravity += 1
         self.rect.y += self.gravity
         if self.rect.bottom >= self.plane:
             self.rect.bottom = self.plane
 
+    # The keyboard input handle method for player instance
     def input(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE] and self.rect.bottom >= self.plane:
             self.gravity = -23
 
+    # The method to traverse through the images to make it look like animation
     def animate(self):
         if self.rect.bottom < self.plane:
             self.image = self.player_jump
@@ -68,6 +73,7 @@ class Player(pygame.sprite.Sprite):
                 self.player_index = 0
             self.image = self.player_walk[int(self.player_index)]
 
+    # The sprite group update method
     def update(self):
         self.input()
         self.apply_gravity()
@@ -78,6 +84,7 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, value, sc):
         super().__init__()
 
+        # Choosing the image based on the entity name passed through the variable value
         if value == 'golem_1':
             self.frames = []
             for _, _, image in walk(path.join("assets", "images", "enemy", "golem_1")):
@@ -141,17 +148,20 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(midbottom=(randint(1100, 1500), self.plane))
         self.mask = pygame.mask.from_surface(self.image)
 
-    def animation_state(self):
+    # The method to traverse through the images to make it look like animation
+    def animate(self):
         self.animation_index += 0.16
         if self.animation_index >= len(self.frames):
             self.animation_index = 0
         self.image = self.frames[int(self.animation_index)]
 
+    # The sprite group update method
     def update(self):
-        self.animation_state()
+        self.animate()
         self.rect.x -= self.speed
         self.destroy()
 
+    # The method to destroy the instance when the instance is no longer used to save memory
     def destroy(self):
         if self.rect.x <= -self.rect.width:
             self.kill()
@@ -170,7 +180,7 @@ def probability(weights):
     return 0
 
 
-# Checking collision between player and enemy
+# Method to check collision between player and enemy
 def check_collision():
     global heart
     global hit_sound
@@ -188,17 +198,20 @@ def check_collision():
         return 1
 
 
+# Method to display the score variable
 def display_score(x, y, draw_board, instance_font):
     text = instance_font.render("Score: " + str(score), True, (241, 211, 202))
     text_rect = text.get_rect(center=(x, y))
     board_surface = pygame.transform.scale(
         pygame.image.load(path.join("assets", "images", "ui", "board.png")).convert_alpha(), (250, 180))
     board_rect_element = board_surface.get_rect(center=(width // 2, -10))
+    # Drawing the board if necessary
     if draw_board:
         screen.blit(board_surface, board_rect_element)
     screen.blit(text, text_rect)
 
 
+# Method to display status like highscore and time played
 def display_stats(hs, tp, font_instance):
     text_1 = font_instance.render("Highscore: " + str(hs), True, (241, 211, 202))
     text_1_rect = text_1.get_rect(center=(width // 2, height // 2 - 80))
@@ -217,6 +230,7 @@ def display_stats(hs, tp, font_instance):
     screen.blit(text_1, text_1_rect)
 
 
+# Method to display the health bar
 def display_heart(display, heart_val):
     health_bar = pygame.transform.scale(
         pygame.image.load(path.join("assets", "images", "ui", f"health_{heart_val}.png")).convert_alpha(), (180, 26))
@@ -224,6 +238,7 @@ def display_heart(display, heart_val):
     display.blit(health_bar, health_bar_rect)
 
 
+# Method to read the values from a file which are used later
 def read_property():
     global file_exists
     global file_location
@@ -238,6 +253,7 @@ def read_property():
         return [0, 0, 1]
 
 
+# Method to write the values
 def write_property(val_score=0, val_time=0, music=1):
     global file_exists
     global file_location
@@ -255,19 +271,20 @@ def write_property(val_score=0, val_time=0, music=1):
             file_exists = True
         else:
             file_exists = True
+
         write_property()
 
 
+# Method to generate a font object with the intended size
 def get_font(size):
     return pygame.font.Font(path.join("assets", "fonts", "evil_empire.ttf"), size)
 
 
+# Initializing pygame
 pygame.init()
 
+# Assigning the values to required variable
 width, height = 1000, 9 * 1000 // 16
-
-screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Riverside")
 
 running = True
 menu_pressed = False
@@ -282,6 +299,11 @@ high_score = int(data_val[0])
 time_played = int(data_val[1])
 music_playing = int(data_val[2])
 
+# Displaying the screen
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption("Riverside")
+pygame.display.set_icon(pygame.image.load(path.join("assets", "images", "ui", "icon.png")))
+
 # The sounds
 heal_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-heal-sound.mp3"))
 jump_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-jump-sound.mp3"))
@@ -289,6 +311,7 @@ hit_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-hit-sound.mp3
 button_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-button-sound.mp3"))
 game_over_sound = pygame.mixer.Sound(path.join("assets", "sounds", "game-over-sound.mp3"))
 
+# Assigning values based on saved data
 if music_playing == 1:
     music_y = 36
     no_music_y = -100
@@ -312,7 +335,7 @@ else:
 
 clock = pygame.time.Clock()
 
-# Game over screen elements
+# Assigning the elements that are to be drawn on screen
 black_screen = pygame.Surface((width, height))
 black_screen.set_alpha(200)
 black_screen_rect = black_screen.get_rect(topleft=(0, 0))
@@ -353,7 +376,7 @@ no_music_surf_2 = pygame.transform.scale(
     pygame.image.load(path.join("assets", "images", "ui", "no_music.png")), (90, 90))
 no_music_rect_2 = no_music_surf_2.get_rect(center=(width // 2 + 110, no_music_2_y))
 
-# The Sprite groups 
+# Assigning the Sprite Groups
 background = pygame.sprite.Group()
 background.add(Background(width, height))
 
@@ -372,7 +395,9 @@ pygame.time.set_timer(score_update, 4000)
 heal = pygame.USEREVENT + 3
 pygame.time.set_timer(heal, 20000)
 
+# The game loop
 while running:
+    # Handling the events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -478,6 +503,7 @@ while running:
     background.draw(screen)
     background.update()
 
+    # Drawing rest of the element based on game_state, game_state when 1 means game is running and 0 means game over
     if game_state == 1:
         # Drawing the player
         player.draw(screen)
@@ -521,10 +547,13 @@ while running:
             screen.blit(plate_2_surf, plate_2_rect)
             display_stats(high_score, time_played, get_font(30))
 
+    # Updating high_score if necessary
     if score > high_score:
         high_score = score
 
+    # Updating the display sprite
     pygame.display.update()
+    # Limiting the program to draw 60 times a second
     clock.tick(60)
 
 # Update after game window is closed
